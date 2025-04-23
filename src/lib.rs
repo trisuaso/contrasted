@@ -36,21 +36,21 @@ impl Color {
     }
 
     /// Get the luminance of a single color value.
-    pub fn channel_luminance(x: u8) -> f64 {
-        let x: f64 = (x / 255) as f64;
+    pub fn srgb_luminance(x: u8) -> f64 {
+        let srgb: f64 = x as f64 / 255.0;
 
-        if x <= LUMINANCE_THRESHOLD {
-            x / 12.92
+        if srgb <= LUMINANCE_THRESHOLD {
+            srgb / 12.92
         } else {
-            ((x as f64 + 0.055) / 1.055).powf(GAMMA)
+            ((srgb as f64 + 0.055) / 1.055).powf(GAMMA)
         }
     }
 
     /// Get the luminance of the whole color.
     pub fn luminance(&self) -> f64 {
-        Self::channel_luminance(self.0) * RED
-            + Self::channel_luminance(self.1) * GREEN
-            + Self::channel_luminance(self.2) * BLUE
+        Self::srgb_luminance(self.0) * RED
+            + Self::srgb_luminance(self.1) * GREEN
+            + Self::srgb_luminance(self.2) * BLUE
     }
 
     /// Get the contrast ratio between this color and another color.
