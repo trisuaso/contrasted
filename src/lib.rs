@@ -25,9 +25,56 @@ macro_rules! hex_u8 {
 
 /// An RGB color representation.
 #[derive(Clone, Debug, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Color(u8, u8, u8);
+pub struct Color(pub(crate) u8, pub(crate) u8, pub(crate) u8);
+
+impl From<&str> for Color {
+    fn from(value: &str) -> Self {
+        if value.starts_with("#") {
+            Self::from_hex(value)
+        } else if value.starts_with("rgb(") {
+            Self::from_css_rgb(value)
+        } else {
+            Self(0, 0, 0)
+        }
+    }
+}
 
 impl Color {
+    /// Get a color from a CSS rgb function.
+    pub fn from_css_rgb(rgb: &str) -> Self {
+        let chars = rgb.chars().into_iter().skip(4);
+        let mut color = Self(0, 0, 0);
+        let mut color_str = String::new();
+        let mut idx: usize = 0;
+
+        for char in chars {
+            if char == ' ' {
+                continue;
+            }
+
+            if char == ')' {
+                break;
+            }
+
+            if char == ',' {
+                if idx == 0 {
+                    color.0 = color_str.parse::<u8>().unwrap_or(0);
+                } else if idx == 1 {
+                    color.1 = color_str.parse::<u8>().unwrap_or(0);
+                } else {
+                    color.2 = color_str.parse::<u8>().unwrap_or(0);
+                }
+
+                idx += 1;
+                color_str = String::new();
+            } else {
+                color_str.push(char);
+            }
+        }
+
+        color
+    }
+
     /// Get a color from a hex string. (hashtag sign included)
     pub fn from_hex(hex: &str) -> Self {
         let mut hex = hex.chars();
@@ -68,6 +115,16 @@ impl Color {
 #[cfg(test)]
 mod test {
     use crate::Color;
+
+    #[test]
+    pub fn from_css_rgb() {
+        assert_eq!(Color::from("rgb(255,255, 0)"), Color(255, 255, 0))
+    }
+
+    #[test]
+    pub fn from_hex() {
+        assert_eq!(Color::from("#ffff00"), Color(255, 255, 0))
+    }
 
     #[test]
     pub fn black_on_white() {
