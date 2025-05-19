@@ -19,7 +19,10 @@ macro_rules! hex_u8 {
         c.push(c1);
         c.push(c2);
 
-        u8::from_str_radix(&c, 16).unwrap()
+        match u8::from_str_radix(&c, 16) {
+            Ok(u) => u,
+            Err(_) => 0,
+        }
     }};
 }
 
